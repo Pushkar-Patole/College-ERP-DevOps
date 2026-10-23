@@ -1,0 +1,42 @@
+name: College ERP DevOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test-docker-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build application
+        run: python -m py_compile app.py
+
+      - name: Run automated tests
+        run: pytest -v
+
+      - name: Build Docker image
+        run: docker build -t college-erp:1.0 .
+
+      - name: Deploy using Docker Compose
+        run: docker compose up -d
+
+      - name: Verify Docker deployment
+        run: docker compose ps
+
+      - name: Stop Docker Compose deployment
+        run: docker compose down
